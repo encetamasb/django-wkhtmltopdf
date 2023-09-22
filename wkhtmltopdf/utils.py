@@ -23,7 +23,7 @@ from django.template import loader
 from django.template.context import Context, RequestContext
 import six
 
-from .subprocess import check_output
+from .subprocess import check_output, PIPE
 
 NO_ARGUMENT_OPTIONS = ['--collate', '--no-collate', '-H', '--extended-help', '-g',
                        '--grayscale', '-h', '--help', '--htmldoc', '--license', '-l',
@@ -130,7 +130,7 @@ def wkhtmltopdf(pages, output=None, **kwargs):
     if has_cover:
         pages.insert(0, 'cover')
 
-    ck_args = list(chain(shlex.split(cmd),
+    ck_args = list(chain([cmd, ],
                          _options_to_args(**options),
                          list(pages),
                          [output]))
@@ -141,8 +141,8 @@ def wkhtmltopdf(pages, output=None, **kwargs):
         ck_kwargs['stderr'] = sys.stderr
     except (AttributeError, IOError):
         # can't call fileno() on mod_wsgi stderr object
-        pass
 
+    ck_kwargs['stderr'] = PIPE
     return check_output(ck_args, **ck_kwargs)
 
 def convert_to_pdf(filename, header_filename=None, footer_filename=None, cmd_options=None, cover_filename=None):
